@@ -9,8 +9,6 @@
  *                               navigation face.  Behavior is undefined if any
  *                               component is NaN, infinity or negative
  *                               infinity.
- * @param face_index The index of the face to which the location is to be
- *                   constrained.
  * @param face_vertex_counts The number of vertices of each face in the
  *                           navigation mesh.  Behavior is defined if any is
  *                           less than 3.
@@ -31,19 +29,21 @@
  *                          navigation mesh.  Each points to the next vertex of
  *                          the face, with a magnitude equal to the reciprocal
  *                          of the distance to that vertex.
+ * @param face_index The index of the face to which the location is to be
+ *                   constrained.
  * @param constrained_location The 3D vector which is overwritten with the
  *                             resulting location.  May overlap with the
  *                             unconstrained location.
  */
 void constrain_to_navigable_surface(
     const float *const unconstrained_location,
-    const int face_index,
     const int *const face_vertex_counts,
     const int *const face_vertex_offsets,
     const float *const face_vertex_locations,
     const float *const face_normals,
     const float *const edge_normals,
     const float *const edge_coefficients,
+    const int face_index,
     float *const constrained_location);
 
 #endif
