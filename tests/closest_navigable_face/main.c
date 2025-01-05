@@ -227,7 +227,7 @@ static void scenario(
   const float location[] = {location_x, location_y, location_z};
 
   const int actual_face_index = closest_navigable_face(location,
-                                                       5,
+                                                       4,
                                                        face_vertex_counts,
                                                        face_vertex_offsets,
                                                        face_vertex_locations,
