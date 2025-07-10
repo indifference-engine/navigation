@@ -1,7 +1,7 @@
 #include "sliding_navigation_collision.h"
 #include "sliding_navigation_collision_result.h"
 
-static const float tolerance = 0.0001f;
+static const float offset = 0.0001f;
 
 int sliding_navigation_collision(
     const float *const from, const int face_index, const float *const to,
@@ -49,9 +49,8 @@ int sliding_navigation_collision(
 
     if (from_surface_distance >= 0.0f) {
       const float adjusted_from_surface_distance =
-          from_surface_distance - tolerance;
-      const float adjusted_to_surface_distance =
-          to_surface_distance - tolerance;
+          from_surface_distance - offset;
+      const float adjusted_to_surface_distance = to_surface_distance - offset;
 
       best_along =
           adjusted_from_surface_distance /
@@ -99,9 +98,8 @@ int sliding_navigation_collision(
 
       if (from_edge_distance <= 0.0f) {
         if (relevant_face_edge_neighbor_counts[vertex_index] == 0) {
-          const float adjusted_from_edge_distance =
-              from_edge_distance + tolerance;
-          const float adjusted_to_edge_distance = to_edge_distance + tolerance;
+          const float adjusted_from_edge_distance = from_edge_distance + offset;
+          const float adjusted_to_edge_distance = to_edge_distance + offset;
 
           const float along =
               adjusted_from_edge_distance /
@@ -116,9 +114,8 @@ int sliding_navigation_collision(
             best_escape = -adjusted_to_edge_distance;
           }
         } else {
-          const float adjusted_from_edge_distance =
-              from_edge_distance + tolerance;
-          const float adjusted_to_edge_distance = to_edge_distance + tolerance;
+          const float adjusted_from_edge_distance = from_edge_distance + offset;
+          const float adjusted_to_edge_distance = to_edge_distance + offset;
 
           const float along =
               adjusted_from_edge_distance /
@@ -126,9 +123,9 @@ int sliding_navigation_collision(
 
           if (along <= best_along) {
             const float secondary_adjusted_from_edge_distance =
-                from_edge_distance - tolerance;
+                from_edge_distance - offset;
             const float secondary_adjusted_to_edge_distance =
-                to_edge_distance - tolerance;
+                to_edge_distance - offset;
 
             best_along = along;
             best_escape = secondary_adjusted_from_edge_distance /
