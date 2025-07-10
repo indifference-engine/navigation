@@ -37,13 +37,9 @@
  */
 void constrain_to_navigable_surface(
     const float *const unconstrained_location,
-    const int *const face_vertex_counts,
-    const int *const face_vertex_offsets,
-    const float *const face_vertex_locations,
-    const float *const face_normals,
-    const float *const edge_normals,
-    const float *const edge_coefficients,
-    const int face_index,
-    float *const constrained_location);
+    const int *const face_vertex_counts, const int *const face_vertex_offsets,
+    const float *const face_vertex_locations, const float *const face_normals,
+    const float *const edge_normals, const float *const edge_coefficients,
+    const int face_index, float *const constrained_location);
 
 #endif

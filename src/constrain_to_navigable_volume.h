@@ -49,15 +49,10 @@
  */
 void constrain_to_navigable_volume(
     const float *const unconstrained_location,
-    const int *const face_vertex_counts,
-    const int *const face_vertex_offsets,
-    const float *const face_vertex_locations,
-    const float *const face_normals,
-    const float *const edge_exit_normals,
-    const float *const edge_normals,
-    const float *const edge_coefficients,
-    const float *const vertex_up_normals,
-    const int face_index,
-    float *const constrained_location);
+    const int *const face_vertex_counts, const int *const face_vertex_offsets,
+    const float *const face_vertex_locations, const float *const face_normals,
+    const float *const edge_exit_normals, const float *const edge_normals,
+    const float *const edge_coefficients, const float *const vertex_up_normals,
+    const int face_index, float *const constrained_location);
 
 #endif

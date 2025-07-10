@@ -30,14 +30,12 @@
  *                          of the distance to that vertex.
  * @return The index of the closest face to the given location.
  */
-int closest_navigable_face(
-    const float *const location,
-    const int face_count,
-    const int *const face_vertex_counts,
-    const int *const face_vertex_offsets,
-    const float *const face_vertex_locations,
-    const float *const face_normals,
-    const float *const edge_normals,
-    const float *const edge_coefficients);
+int closest_navigable_face(const float *const location, const int face_count,
+                           const int *const face_vertex_counts,
+                           const int *const face_vertex_offsets,
+                           const float *const face_vertex_locations,
+                           const float *const face_normals,
+                           const float *const edge_normals,
+                           const float *const edge_coefficients);
 
 #endif

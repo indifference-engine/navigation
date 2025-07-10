@@ -58,16 +58,11 @@
  * @return A sliding navigation collision result or edge index.
  */
 int sliding_navigation_collision(
-    const float *const from,
-    const int face_index,
-    const float *const to,
-    const int *const face_vertex_counts,
-    const int *const face_vertex_offsets,
-    const float *const face_vertex_locations,
-    const float *const face_normals,
+    const float *const from, const int face_index, const float *const to,
+    const int *const face_vertex_counts, const int *const face_vertex_offsets,
+    const float *const face_vertex_locations, const float *const face_normals,
     const float *const edge_exit_normals,
-    const int *const face_edge_neighbor_counts,
-    float *const result_from,
+    const int *const face_edge_neighbor_counts, float *const result_from,
     float *const result_to);
 
 #endif
