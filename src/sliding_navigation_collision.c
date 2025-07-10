@@ -47,20 +47,19 @@ int sliding_navigation_collision(
         from_surface_difference[1] * relevant_face_normal[1] +
         from_surface_difference[2] * relevant_face_normal[2];
 
-    if (from_surface_distance >= 0.0f) {
-      const float adjusted_from_surface_distance =
-          from_surface_distance - offset;
-      const float adjusted_to_surface_distance = to_surface_distance - offset;
+    const float adjusted_from_surface_distance = from_surface_distance - offset;
+    const float adjusted_to_surface_distance = to_surface_distance - offset;
 
-      best_along =
-          adjusted_from_surface_distance /
-          (adjusted_from_surface_distance - adjusted_to_surface_distance);
-      output = SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE;
-      best_normal[0] = relevant_face_normal[0];
-      best_normal[1] = relevant_face_normal[1];
-      best_normal[2] = relevant_face_normal[2];
-      best_escape = -adjusted_to_surface_distance;
-    }
+    best_along =
+        to_surface_distance == from_surface_distance
+            ? 0.0f
+            : adjusted_from_surface_distance / (adjusted_from_surface_distance -
+                                                adjusted_to_surface_distance);
+    output = SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE;
+    best_normal[0] = relevant_face_normal[0];
+    best_normal[1] = relevant_face_normal[1];
+    best_normal[2] = relevant_face_normal[2];
+    best_escape = -adjusted_to_surface_distance;
   }
 
   const int relevant_face_vertex_count = face_vertex_counts[face_index];
@@ -96,43 +95,48 @@ int sliding_navigation_collision(
           from_edge_difference[1] * relevant_edge_exit_normal[1] +
           from_edge_difference[2] * relevant_edge_exit_normal[2];
 
-      if (from_edge_distance <= 0.0f) {
-        if (relevant_face_edge_neighbor_counts[vertex_index] == 0) {
-          const float adjusted_from_edge_distance = from_edge_distance + offset;
-          const float adjusted_to_edge_distance = to_edge_distance + offset;
+      if (relevant_face_edge_neighbor_counts[vertex_index] == 0) {
+        const float adjusted_from_edge_distance = from_edge_distance + offset;
+        const float adjusted_to_edge_distance = to_edge_distance + offset;
 
-          const float along =
-              adjusted_from_edge_distance /
-              (adjusted_from_edge_distance - adjusted_to_edge_distance);
+        const float along =
+            adjusted_to_edge_distance == adjusted_from_edge_distance
+                ? adjusted_from_edge_distance
+                : adjusted_from_edge_distance /
+                      (adjusted_from_edge_distance - adjusted_to_edge_distance);
 
-          if (along <= best_along) {
-            best_along = along;
-            output = SLIDING_NAVIGATION_COLLISION_RESULT_EDGE;
-            best_normal[0] = relevant_edge_exit_normal[0];
-            best_normal[1] = relevant_edge_exit_normal[1];
-            best_normal[2] = relevant_edge_exit_normal[2];
-            best_escape = -adjusted_to_edge_distance;
-          }
-        } else {
-          const float adjusted_from_edge_distance = from_edge_distance + offset;
-          const float adjusted_to_edge_distance = to_edge_distance + offset;
+        if (along <= best_along) {
+          best_along = along;
+          output = SLIDING_NAVIGATION_COLLISION_RESULT_EDGE;
+          best_normal[0] = relevant_edge_exit_normal[0];
+          best_normal[1] = relevant_edge_exit_normal[1];
+          best_normal[2] = relevant_edge_exit_normal[2];
+          best_escape = -adjusted_to_edge_distance;
+        }
+      } else {
+        const float adjusted_from_edge_distance = from_edge_distance + offset;
+        const float adjusted_to_edge_distance = to_edge_distance + offset;
 
-          const float along =
-              adjusted_from_edge_distance /
-              (adjusted_from_edge_distance - adjusted_to_edge_distance);
+        const float along =
+            adjusted_from_edge_distance == adjusted_to_edge_distance
+                ? 0.0f
+                : adjusted_from_edge_distance /
+                      (adjusted_from_edge_distance - adjusted_to_edge_distance);
 
-          if (along <= best_along) {
-            const float secondary_adjusted_from_edge_distance =
-                from_edge_distance - offset;
-            const float secondary_adjusted_to_edge_distance =
-                to_edge_distance - offset;
+        if (along <= best_along) {
+          const float secondary_adjusted_from_edge_distance =
+              from_edge_distance - offset;
+          const float secondary_adjusted_to_edge_distance =
+              to_edge_distance - offset;
 
-            best_along = along;
-            best_escape = secondary_adjusted_from_edge_distance /
-                          (secondary_adjusted_from_edge_distance -
-                           secondary_adjusted_to_edge_distance);
-            output = vertex_index;
-          }
+          best_along = along;
+          best_escape = secondary_adjusted_from_edge_distance ==
+                                secondary_adjusted_to_edge_distance
+                            ? secondary_adjusted_from_edge_distance
+                            : secondary_adjusted_from_edge_distance /
+                                  (secondary_adjusted_from_edge_distance -
+                                   secondary_adjusted_to_edge_distance);
+          output = vertex_index;
         }
       }
     }
