@@ -35,6 +35,13 @@ static void check_int(const char *const description_a,
   }
 }
 
+static void check_edge_index(const char *const description, const int result,
+                             const int expected, const int actual) {
+  if (result == SLIDING_NAVIGATION_COLLISION_RESULT_EDGE) {
+    check_int(description, "edge index", expected, actual);
+  }
+}
+
 static const int face_vertex_counts[] = {3, 5, 4, 6};
 
 static const int face_vertex_offsets[] = {0, 3, 8, 12};
@@ -97,17 +104,19 @@ static void scenario(const char *const description, const float from_x,
                      const float to_z, const float result_from_x,
                      const float result_from_y, const float result_from_z,
                      const float result_to_x, const float result_to_y,
-                     const float result_to_z, const int result) {
+                     const float result_to_z, const int result,
+                     const int edge_index) {
   const float different_from[] = {from_x, from_y, from_z};
   const float different_to[] = {to_x, to_y, to_z};
   float different_result_from[] = {1.0f, 2.0f, 3.0f};
   float different_result_to[] = {4.0f, 5.0f, 6.0f};
+  int different_edge_index;
 
   const int different_result = sliding_navigation_collision(
       different_from, face_index, different_to, face_vertex_counts,
       face_vertex_offsets, face_vertex_locations, face_normals,
       edge_exit_normals, face_edge_neighbor_counts, different_result_from,
-      different_result_to);
+      different_result_to, &different_edge_index);
 
   check_exact(description, "different from x", from_x, different_from[0]);
   check_exact(description, "different from y", from_y, different_from[1]);
@@ -128,14 +137,16 @@ static void scenario(const char *const description, const float from_x,
   check_approximate(description, "different result to z", result_to_z,
                     different_result_to[2]);
   check_int(description, "different result", result, different_result);
+  check_edge_index(description, result, edge_index, different_edge_index);
 
   float same_from[] = {from_x, from_y, from_z};
   float same_to[] = {to_x, to_y, to_z};
+  int same_edge_index;
 
   const int same_result = sliding_navigation_collision(
       same_from, face_index, same_to, face_vertex_counts, face_vertex_offsets,
       face_vertex_locations, face_normals, edge_exit_normals,
-      face_edge_neighbor_counts, same_from, same_to);
+      face_edge_neighbor_counts, same_from, same_to, &same_edge_index);
 
   check_approximate(description, "same from x", result_from_x, same_from[0]);
   check_approximate(description, "same from y", result_from_y, same_from[1]);
@@ -144,6 +155,7 @@ static void scenario(const char *const description, const float from_x,
   check_approximate(description, "same to y", result_to_y, same_to[1]);
   check_approximate(description, "same to z", result_to_z, same_to[2]);
   check_int(description, "same result", result, same_result);
+  check_edge_index(description, result, edge_index, same_edge_index);
 }
 
 int main(const int argc, const char *const *const argv) {
@@ -154,97 +166,102 @@ int main(const int argc, const char *const *const argv) {
            1.7363266944885254f, 2, -0.7968413233757019f, 0.8086849451065063f,
            1.6531301736831665f, -0.6593204736709595f, 1.7540239095687866f,
            1.7363266944885254f, -0.7968413233757019f, 0.8086849451065063f,
-           1.6531301736831665f, SLIDING_NAVIGATION_COLLISION_RESULT_NONE);
+           1.6531301736831665f, SLIDING_NAVIGATION_COLLISION_RESULT_NONE, 0);
 
   scenario("surface collision", -0.7353870272636414f, 1.3286099433898926f,
            1.4362154006958008f, 2, -0.4760225713253021f, 0.9154407978057861f,
            1.1747195720672607f, -0.5417287945747375f, 1.020111322402954f,
            1.240965723991394f, -0.465194f, 1.005900f, 1.247262f,
-           SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE);
+           SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE, 0);
 
   scenario("edge collision", -0.799696683883667f, 0.8778424859046936f,
            1.7735588550567627f, 2, -1.7022922039031982f, 1.066243052482605f,
            2.0128259658813477f, -1.2558252811431885f, 0.9730511903762817f,
            1.8944730758666992f, -1.510417f, 1.175772f, 1.780018f,
-           SLIDING_NAVIGATION_COLLISION_RESULT_EDGE);
+           SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 0);
 
   scenario("edge pass", 0.0352475643157959f, 1.1076184511184692f,
            1.4057743549346924f, 2, 0.20977041125297546f, 1.3069931268692017f,
            0.8717013597488403f, 0.16508668661117554f, 1.2559465169906616f,
            1.0084420442581177f, 0.20977041125297546f, 1.3069931268692017f,
-           0.8717013597488403f, 2);
+           0.8717013597488403f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 2);
 
   scenario("surface collision before edge pass", 0.44600802659988403f,
            0.7854040265083313f, 1.6033046245574951f, 2, 0.6767760515213013f,
            0.33395862579345703f, 1.5399271249771118f, 0.5306594371795654f,
            0.6198027729988098f, 1.5800561904907227f, 0.698483f, 0.515282f,
-           1.685338f, SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE);
+           1.685338f, SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE, 0);
 
   scenario("edge pass before surface collision", 0.44600802659988403f,
            0.7854040265083313f, 1.6033046245574951f, 2, 0.678392767906189f,
            0.36975809931755066f, 1.5947304964065552f, 0.5424019694328308f,
            0.6129928231239319f, 1.599748134613037f, 0.678392767906189f,
-           0.36975809931755066f, 1.5947304964065552f, 3);
+           0.36975809931755066f, 1.5947304964065552f,
+           SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 3);
 
   scenario("surface collision before edge collision", -0.9451434016227722f,
            1.466844081878662f, 1.2895077466964722f, 2, -1.2491717338562012f,
            1.3015402555465698f, 0.6656430959701538f, -1.1345611810684204f,
            1.3638553619384766f, 0.9008233547210693f, -1.230058f, 1.461206f,
-           0.793686f, SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE);
+           0.793686f, SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE, 0);
 
   scenario("edge collision before surface collision", -0.9451434016227722f,
            1.466844081878662f, 1.2895077466964722f, 2, -1.8238425254821777f,
            1.1546778678894043f, -0.2062366008758545f, -1.1484935283660889f,
            1.3946020603179932f, 0.9433599710464478f, -1.354168f, 0.745497f,
-           -0.033175f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE);
+           -0.033175f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 1);
 
   scenario("edge collision before edge collision", -1.2517286539077759f,
            1.153049111366272f, 1.749252438545227f, 2, -2.138270139694214f,
            1.5075002908706665f, 1.9872474670410156f, -1.5096309185028076f,
            1.2561619281768799f, 1.8184871673583984f, -1.891693f, 1.648255f,
-           1.688068f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE);
+           1.688068f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 0);
 
   scenario("edge collision after edge collision", -1.2517286539077759f,
            1.153049111366272f, 1.749252438545227f, 2, -2.094743251800537f,
            1.6770308017730713f, 1.9091947078704834f, -1.5263663530349731f,
            1.3237521648406982f, 1.8013584613800049f, -1.653305f, 1.292450f,
-           2.071852f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE);
+           2.071852f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 1);
 
   scenario("edge collision before edge pass", -0.8459683060646057f,
            1.3359043598175049f, 0.9404218792915344f, 2, -1.355805516242981f,
            1.9333240985870361f, 0.33385685086250305f, -0.9893378019332886f,
            1.5039026737213135f, 0.7698519229888916f, -0.880162f, 1.518943f,
-           0.509118f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE);
+           0.509118f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 1);
 
   scenario("edge pass before edge collision", -0.8459683060646057f,
            1.3359043598175049f, 0.9404218792915344f, 2, -0.7945818305015564f,
            2.199634075164795f, 0.013435125350952148f, -0.8344507813453674f,
            1.529496669769287f, 0.7326514720916748f, -0.7945818305015564f,
-           2.199634075164795f, 0.013435125350952148f, 2);
+           2.199634075164795f, 0.013435125350952148f,
+           SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 2);
 
   scenario("edge pass before edge pass", 0.6804202198982239f,
            0.9724671840667725f, 1.3651516437530518f, 2, 2.4518818855285645f,
            0.9358981847763062f, 0.9669672846794128f, 1.1150693893432617f,
            0.9634945392608643f, 1.2674524784088135f, 2.4518818855285645f,
-           0.9358981847763062f, 0.9669672846794128f, 2);
+           0.9358981847763062f, 0.9669672846794128f,
+           SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 2);
 
   scenario("edge pass after edge pass", 0.6804202198982239f,
            0.9724671840667725f, 1.3651516437530518f, 2, 2.429912567138672f,
            0.6535996198654175f, 1.4251762628555298f, 1.1516081094741821f,
            0.8865871429443359f, 1.3813179731369019f, 2.429912567138672f,
-           0.6535996198654175f, 1.4251762628555298f, 3);
+           0.6535996198654175f, 1.4251762628555298f,
+           SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 3);
 
   scenario("alternative edge collision before edge pass", -0.4319901764392853f,
            0.5731868743896484f, 2.097071647644043f, 2, 0.4020518362522125f,
            -0.49490365386009216f, 3.200631856918335f, -0.25350940227508545f,
            0.34462088346481323f, 2.33322811126709f, 0.4020518362522125f,
-           -0.49490365386009216f, 3.200631856918335f, 3);
+           -0.49490365386009216f, 3.200631856918335f,
+           SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 3);
 
   scenario("alternative edge pass before edge collision", -0.4319901764392853f,
            0.5731868743896484f, 2.097071647644043f, 2, -0.6737288236618042f,
            -0.5296585559844971f, 3.494502067565918f, -0.4649297893047333f,
            0.42291176319122314f, 2.287487268447876f, 0.118640f, -0.077346f,
-           2.533096f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE);
+           2.533096f, SLIDING_NAVIGATION_COLLISION_RESULT_EDGE, 0);
 
   return exit_code;
 }

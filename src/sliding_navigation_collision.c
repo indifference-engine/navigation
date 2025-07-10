@@ -1,5 +1,6 @@
 #include "sliding_navigation_collision.h"
 #include "sliding_navigation_collision_result.h"
+#include <stdbool.h>
 
 static const float offset = 0.0001f;
 
@@ -9,11 +10,12 @@ int sliding_navigation_collision(
     const float *const face_vertex_locations, const float *const face_normals,
     const float *const edge_exit_normals,
     const int *const face_edge_neighbor_counts, float *const result_from,
-    float *const result_to) {
-  float best_along = 1.0f / 0.0f;
+    float *const result_to, int *const edge_index) {
   int output = SLIDING_NAVIGATION_COLLISION_RESULT_NONE;
+  float best_along = 1.0f / 0.0f;
   float best_normal[] = {0.0f, 0.0f, 0.0f};
   float best_escape = 0.0f;
+  bool collided_with_edge = false;
 
   const int relevant_face_vertex_offset = face_vertex_offsets[face_index];
   const float *const relevant_face_vertex_locations =
@@ -50,16 +52,17 @@ int sliding_navigation_collision(
     const float adjusted_from_surface_distance = from_surface_distance - offset;
     const float adjusted_to_surface_distance = to_surface_distance - offset;
 
+    output = SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE;
     best_along =
         to_surface_distance == from_surface_distance
             ? 0.0f
             : adjusted_from_surface_distance / (adjusted_from_surface_distance -
                                                 adjusted_to_surface_distance);
-    output = SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE;
     best_normal[0] = relevant_face_normal[0];
     best_normal[1] = relevant_face_normal[1];
     best_normal[2] = relevant_face_normal[2];
     best_escape = -adjusted_to_surface_distance;
+    *edge_index = -1;
   }
 
   const int relevant_face_vertex_count = face_vertex_counts[face_index];
@@ -106,12 +109,14 @@ int sliding_navigation_collision(
                       (adjusted_from_edge_distance - adjusted_to_edge_distance);
 
         if (along <= best_along) {
-          best_along = along;
           output = SLIDING_NAVIGATION_COLLISION_RESULT_EDGE;
+          best_along = along;
           best_normal[0] = relevant_edge_exit_normal[0];
           best_normal[1] = relevant_edge_exit_normal[1];
           best_normal[2] = relevant_edge_exit_normal[2];
           best_escape = -adjusted_to_edge_distance;
+          *edge_index = vertex_index;
+          collided_with_edge = false;
         }
       } else {
         const float adjusted_from_edge_distance = from_edge_distance + offset;
@@ -129,6 +134,7 @@ int sliding_navigation_collision(
           const float secondary_adjusted_to_edge_distance =
               to_edge_distance - offset;
 
+          output = SLIDING_NAVIGATION_COLLISION_RESULT_EDGE;
           best_along = along;
           best_escape = secondary_adjusted_from_edge_distance ==
                                 secondary_adjusted_to_edge_distance
@@ -136,45 +142,14 @@ int sliding_navigation_collision(
                             : secondary_adjusted_from_edge_distance /
                                   (secondary_adjusted_from_edge_distance -
                                    secondary_adjusted_to_edge_distance);
-          output = vertex_index;
+          *edge_index = vertex_index;
+          collided_with_edge = true;
         }
       }
     }
   }
 
-  switch (output) {
-  case SLIDING_NAVIGATION_COLLISION_RESULT_NONE:
-    result_from[0] = from[0];
-    result_from[1] = from[1];
-    result_from[2] = from[2];
-    result_to[0] = to[0];
-    result_to[1] = to[1];
-    result_to[2] = to[2];
-    break;
-
-  case SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE:
-  case SLIDING_NAVIGATION_COLLISION_RESULT_EDGE: {
-    const float forward =
-        best_along > 1.0f ? 1.0f : (best_along < 0.0f ? 0.0f : best_along);
-    const float inverse = 1.0f - forward;
-
-    result_from[0] = from[0] * inverse + to[0] * forward;
-    result_from[1] = from[1] * inverse + to[1] * forward;
-    result_from[2] = from[2] * inverse + to[2] * forward;
-
-    const float adjustment[] = {
-        best_normal[0] * best_escape,
-        best_normal[1] * best_escape,
-        best_normal[2] * best_escape,
-    };
-
-    result_to[0] = to[0] + adjustment[0];
-    result_to[1] = to[1] + adjustment[1];
-    result_to[2] = to[2] + adjustment[2];
-    break;
-  }
-
-  default: {
+  if (collided_with_edge) {
     const float forward =
         best_escape > 1.0f ? 1.0f : (best_escape < 0.0f ? 0.0f : best_escape);
     const float inverse = 1.0f - forward;
@@ -186,8 +161,39 @@ int sliding_navigation_collision(
     result_to[0] = to[0];
     result_to[1] = to[1];
     result_to[2] = to[2];
-    break;
-  }
+  } else {
+    switch (output) {
+    case SLIDING_NAVIGATION_COLLISION_RESULT_NONE:
+      result_from[0] = from[0];
+      result_from[1] = from[1];
+      result_from[2] = from[2];
+      result_to[0] = to[0];
+      result_to[1] = to[1];
+      result_to[2] = to[2];
+      break;
+
+    case SLIDING_NAVIGATION_COLLISION_RESULT_SURFACE:
+    case SLIDING_NAVIGATION_COLLISION_RESULT_EDGE: {
+      const float forward =
+          best_along > 1.0f ? 1.0f : (best_along < 0.0f ? 0.0f : best_along);
+      const float inverse = 1.0f - forward;
+
+      result_from[0] = from[0] * inverse + to[0] * forward;
+      result_from[1] = from[1] * inverse + to[1] * forward;
+      result_from[2] = from[2] * inverse + to[2] * forward;
+
+      const float adjustment[] = {
+          best_normal[0] * best_escape,
+          best_normal[1] * best_escape,
+          best_normal[2] * best_escape,
+      };
+
+      result_to[0] = to[0] + adjustment[0];
+      result_to[1] = to[1] + adjustment[1];
+      result_to[2] = to[2] + adjustment[2];
+      break;
+    }
+    }
   }
 
   return output;

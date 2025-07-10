@@ -38,24 +38,31 @@
  *                    - None: Equal to "from".
  *                    - Surface: Equal to the point of impact, for "sticky"
  *                               collision.
- *                    - Edge: Equal to the point of impact, for "sticky"
- *                            collision.
- *                    - Other: Equal to the point at which the motion crossed
- *                             into the neighboring face, for "sticky"
- *                             collision.
+ *                    - Edge (without neighbors): Equal to the point of impact,
+ *                                                for "sticky" collision.
+ *                    - Other (with neighbors): Equal to the point at which the
+ *                                              motion crossed into the
+ *                                              neighboring face, for "sticky"
+ *                                              collision.
  *                    May be "from".
  * @param result_to Overwritten depending upon the result:
  *                  - None: Equal to "to".
  *                  - Surface: Equal to "to" projected onto the surface, for
  *                             "sliding" collision.  May land outside the volume
  *                             of the face.
- *                  - Edge: Equal to "to" projected onto the plane of the edge,
- *                          for "sliding" collision.  May land outside the
- *                          volume of the face.
- *                  - Other: Equal to "to" projected onto the corresponding
- *                           edge, for "sliding" collision.
+ *                  - Edge (without neighbors): Equal to "to" projected onto the
+ *                                              plane of the edge, for "sliding"
+ *                                              collision.  May land outside the
+ *                                              volume of the face.
+ *                  - Other (with neighbors): Equal to "to" projected onto the
+ *                                            corresponding edge, for "sliding"
+ *                                            collision.
  *                  May be "to".
- * @return A sliding navigation collision result or edge index.
+ * @param edge_index Overwritten depending upon the result:
+ *                   - None: Undefined.
+ *                   - Surface: Undefined.
+ *                   - Edge: The index of the edge crossed or collided with.
+ * @return A sliding navigation collision result.
  */
 int sliding_navigation_collision(
     const float *const from, const int face_index, const float *const to,
@@ -63,6 +70,6 @@ int sliding_navigation_collision(
     const float *const face_vertex_locations, const float *const face_normals,
     const float *const edge_exit_normals,
     const int *const face_edge_neighbor_counts, float *const result_from,
-    float *const result_to);
+    float *const result_to, int *const edge_index);
 
 #endif
